@@ -92,7 +92,7 @@ public class Autos {
         //toScoreJ.atTime(0).onTrue(m_elev.goToPosition(ElevatorS.Positions.HIGH_POSITION)).onTrue(m_arm.goToPosition(ArmS.Positions.CORAL_L4)).onTrue(m_hand.)
             final AutoTrajectory toScoreK = routine.trajectory("2");
             final AutoTrajectory toScoreL = routine.trajectory("3");
-            final AutoTrajectory toScoreA = routine.trajectory("4");
+            //final AutoTrajectory toScoreA = routine.trajectory("4");
            // traj.chain(toScoreK);
             //toScoreK.done().onTrue(waitSeconds(1.0).andThen(toScoreL.spawnCmd()));
             //toScoreK.chain(toScoreL);
@@ -105,8 +105,8 @@ public class Autos {
                     .andThen(toScoreK.cmd())
                     .andThen(Commands.waitSeconds(SCORE_WAIT))
                     .andThen(toScoreL.cmd())
-                    .andThen(Commands.waitSeconds(SCORE_WAIT))
-                    .andThen(toScoreA.cmd())
+                    //.andThen(Commands.waitSeconds(SCORE_WAIT))
+                    //.andThen(toScoreA.cmd())
             );
         return routine;
         }
@@ -116,7 +116,7 @@ public class Autos {
         //toScoreJ.atTime(0).onTrue(m_elev.goToPosition(ElevatorS.Positions.HIGH_POSITION)).onTrue(m_arm.goToPosition(ArmS.Positions.CORAL_L4)).onTrue(m_hand.)
             final AutoTrajectory toScoreK = routine.trajectory("6");
             final AutoTrajectory toScoreL = routine.trajectory("7");
-            final AutoTrajectory toScoreA = routine.trajectory("8");
+            //final AutoTrajectory toScoreA = routine.trajectory("8");
            // traj.chain(toScoreK);
             //toScoreK.done().onTrue(waitSeconds(1.0).andThen(toScoreL.spawnCmd())); Please work.
             //toScoreK.chain(toScoreL);
@@ -129,8 +129,8 @@ public class Autos {
                     .andThen(toScoreK.cmd())
                     .andThen(Commands.waitSeconds(SCORE_WAIT))
                     .andThen(toScoreL.cmd())
-                    .andThen(Commands.waitSeconds(SCORE_WAIT))
-                    .andThen(toScoreA.cmd())
+                    //.andThen(Commands.waitSeconds(SCORE_WAIT))
+                    //.andThen(toScoreA.cmd())
             );
         return routine;
         }
@@ -142,7 +142,7 @@ public class Autos {
                 traj.resetOdometry().andThen(traj.cmd())
             );
         return routine;
-        }*/
+        }*/   
 }
     /* public Autos(CommandSwerveDrivetrain drivebase, ArmS arm, IntakePivotS intakepiv, IntakeRollerS intakerol, ElevatorS elev, HandS hand, AutoFactory factory) {
         m_drivebase = drivebase;

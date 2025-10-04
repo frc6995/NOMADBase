@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.Centimeters;
 import static edu.wpi.first.units.Units.Degrees;
 
 import java.util.function.Supplier;
+import com.therekrab.autopilot.Autopilot;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -90,5 +91,4 @@ public class AutoAlign extends Command{
     }
 
 
-  }
-
+}
