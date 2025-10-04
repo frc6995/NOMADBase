@@ -70,10 +70,10 @@ public class ArmS extends SubsystemBase {
       // Feedback Constants (PID Constants)
       .withClosedLoopController(2, 0, 0.2, DegreesPerSecond.of(458), DegreesPerSecondPerSecond.of(688))
 
-      .withSimClosedLoopController(2, 0, 0, DegreesPerSecond.of(200), DegreesPerSecondPerSecond.of(200))
+      .withSimClosedLoopController(0.8, 0, 0, DegreesPerSecond.of(200), DegreesPerSecondPerSecond.of(200))
       // Feedforward Constants
-      .withFeedforward(new ArmFeedforward(0, 1.2, 0))
-      .withSimFeedforward(new ArmFeedforward(0.0, 0.25, 0, 0))
+      .withFeedforward(new ArmFeedforward(0, 3, 0))
+      .withSimFeedforward(new ArmFeedforward(0.0, 1, 0.5, 0))
       // Telemetry name and verbosity level
       .withTelemetry("ArmMotor", TelemetryVerbosity.HIGH)
       // Gearing from the motor rotor to final shaft.
@@ -110,7 +110,7 @@ public class ArmS extends SubsystemBase {
   private ArmConfig armCfg = new ArmConfig(mainArmSMC)
       // Soft limit is applied to the SmartMotorControllers PID
 
-      .withHardLimit(Degrees.of(-90), Degrees.of(160))
+      .withHardLimit(Degrees.of(-180), Degrees.of(180))
       // Starting position is where your arm starts
       .withStartingPosition(Degrees.of(-90))
 
