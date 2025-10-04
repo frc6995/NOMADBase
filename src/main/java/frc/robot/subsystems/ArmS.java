@@ -63,7 +63,7 @@ public class ArmS extends SubsystemBase {
   }
 
   public static final Angle SOME_ANGLE = Degrees.of(20);
-
+  public final Angle kArmHandoffAngle = Degrees.of(180);
   public CANcoder encoder = new CANcoder(62);
 
   private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
