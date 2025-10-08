@@ -43,7 +43,10 @@ public class ElevatorS extends SubsystemBase {
 ;
   public final Distance kElevatorMinHeight = Inches.of(13);
   public final Distance kElevatorMaxHeight = Inches.of(76);
-  public final Distance kElevatorHandoffHeight = Inches.of(50);
+  public final Distance ELEVATOR_HANDOFF_HEIGHT = Inches.of(50);
+
+  //Todo: set all possible heights, tune
+  public final Distance L2_HEIGHT = Inches.of(20);
     
     private SmartMotorControllerConfig smcElevConfig = new SmartMotorControllerConfig(this)
     .withFollowers(Pair.of(new TalonFX(52, TunerConstants.kCANBus), false))
@@ -102,18 +105,14 @@ public class ElevatorS extends SubsystemBase {
    *
    * @return a command
    */
-    public Command setHeight(Distance height) {
-        return elevator.setHeight(height);}
-
     public Command set(double dutycycle) {
         return elevator.set(dutycycle);}
+
         
-    public Command zeroHeight() {
-        return elevator.setHeight(kElevatorMinHeight);
+    public Command setHeight(Distance height) {
+        return elevator.setHeight(height);
     }
-    public Command handoffHeight() {
-        return elevator.setHeight(kElevatorHandoffHeight);
-    }
+    
 
   /**
    * An example method querying a boolean state of the subsystem (for example, a digital sensor).

@@ -6,6 +6,8 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.lang.Thread.State;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.therekrab.autopilot.APTarget;
@@ -40,6 +42,7 @@ import frc.robot.subsystems.HandS;
 import frc.robot.subsystems.HandS.HandConstants;
 import frc.robot.subsystems.YAMSIntakePivot;
 import frc.robot.subsystems.YAMSIntakeRollerS;
+import frc.robot.StateMachine;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -75,6 +78,7 @@ public class RobotContainer {
     private Mechanism2d VISUALIZER; 
     private final Autos autoRoutines;
     private final AutoChooser m_chooser = new AutoChooser();
+    private final StateMachine stateMachine = new StateMachine();
 
      
     public RobotContainer() {
@@ -114,48 +118,9 @@ public class RobotContainer {
         RobotModeTriggers.disabled().whileTrue(
                 drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
-
-                /*set button bindings
-                joystick.a().onTrue(intakeCoral());
-                joystick.b().onTrue(Handoff());
-                joystick.x().onTrue(Stow());
-                joystick.y().whileTrue(L1Score());
-                joystick.rightBumper().whileTrue(elevator.setHeight(Inches.of(70)));
-                joystick.rightBumper().whileTrue(elevator.setHeight(Inches.of(12))); */
-
                 joystick.a().onTrue(
-                    intakeCoral()
+                    stateMachine.intakeCoral()
                 );
-                joystick.b().onTrue(zeroAll());
-                // separated command queueing allows for both with a single push
-
-
-                /* joystick.x()
-                    .onTrue(new InstantCommand(() -> {
-                        xButtonPressedTime = Timer.getFPGATimestamp();
-                    }))
-                    .onFalse(new InstantCommand(() -> {
-                        double heldTime = Timer.getFPGATimestamp() - xButtonPressedTime;
-                        if (heldTime < 0.25) {  // threshold in seconds
-                            // Short tap
-                            elevator.setHeight(Inches.of(70)).schedule();
-                        } else {
-                            // Long hold
-                            new AutoAlign(null, drivetrain, "left", () -> joystick.getLeftX(), () -> joystick.getLeftY()).schedule();
-                        }
-                    }));
-
-                
-                //joystick.x().whileTrue(new AutoAlign(null, drivetrain, "left"));
-                //joystick.y().whileTrue(new AutoAlign(new APTarget(new Pose2d(ChoreoVariables.get("X_pos"), ChoreoVariables.get("Y_pos"), new Rotation2d(ChoreoVariables.get("Theta")))), drivetrain));
-/*                joystick.rightTrigger().whileTrue(new AutoAlign(new APTarget(drivetrain.targetPose()), drivetrain));
-                joystick.leftTrigger().whileTrue(new AutoAlign(new APTarget(new Pose2d(ChoreoVariables.get("X_pos"), ChoreoVariables.get("Y_pos"), new Rotation2d(ChoreoVariables.get("Theta")))), drivetrain)); */
-        joystick.a().whileTrue(arm.setAngle(Degrees.of(150)));
-        joystick.b().whileTrue(arm.setAngle(Degrees.of(0)));
-        joystick.y().whileTrue(yIntakePivot.setAngle(Degrees.of(60)));
-        joystick.x().whileTrue(yIntakePivot.setAngle(Degrees.of(0)));
-        joystick.rightBumper().whileTrue(elevator.setHeight(Inches.of(76)));
-        joystick.leftBumper().whileTrue(elevator.setHeight(Inches.of(13)));
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
@@ -165,21 +130,10 @@ public class RobotContainer {
                 return m_chooser.selectedCommand();
                 
             }
-            
 
-            //Commands combining multiple subsystem functions
-            public Command intakeCoral() {
-                return Commands.race(yIntakePivot.setAngle(yIntakePivot.DOWN_ANGLE), intakeRoller.coralIntake())
-                .andThen(
-                    Commands.parallel(
-                        elevator.handoffHeight()
-                        //arm.handoffAngle()
-                    )
-                );
-    }
-        
+            //TODO: add to state machine, delete
             public Command Stow() {
-                return yIntakePivot.setAngle(yIntakePivot.L1_ANGLE);
+                return yIntakePivot.setAngle(YAMSIntakePivot.L1_ANGLE);
             }
             public Command L1Score() {
                 return intakeRoller.outTakeRollers();
@@ -189,32 +143,6 @@ public class RobotContainer {
                 return yIntakePivot.setAngle(YAMSIntakePivot.HANDOFF_ANGLE).until(() ->Math.abs(yIntakePivot.getAngle().in(Degrees) - YAMSIntakePivot.HANDOFF_ANGLE.in(Degrees)) < 2.0);
                 
             }
-            /* 
-            public Command Arm_L2scoring(){
-                return Arm.moveToAngle(PivotConstants.SCORE_ANGLE_L2);
-            }
-            public Command Arm_L3Scoring(){
-                return Arm.moveToAngle(PivotConstants.SCORE_ANGLE_L3);
-            }
-            public Command Arm_L4Scoring(){
-                return Arm.setAngle(Arm.SCORE_ANGLE_L4);
-            }
-            public Command Arm_Hand_Off_Angle(){
-                return Arm.setAngle(Arm.HANDOFF_ANGLE);
-                /* */
-            
-            public Command Hand_Voltage_Scoring(){
-                return handRoller.setHandRollerVoltage(HandConstants.HAND_ROLLER_OUT_VOLTAGE);
-            }
-            public Command Hand_Rollers_In(){
-                return handRoller.HandCoralIntake();
-            }
-            public Command Arm_Scoring_postion(){
-                return arm.setAngle(arm.SOME_ANGLE);
-            }
-            public Command zeroAll() {
-                return elevator.zeroHeight();
-                //return null; // first elevator.handoffHeight(), chained with arm.handoffAngle();
-            }
+        
         }
 

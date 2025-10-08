@@ -46,29 +46,29 @@ import frc.robot.generated.TunerConstants;
 import yams.mechanisms.SmartMechanism;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
-import frc.robot.KrakenX44;
-
 public class ArmS extends SubsystemBase {
 
   public static class ArmConstants {
     public static final int CAN_ID = 60;
 
     public static final Distance ARM_LENGTH_INCHES = Inches.of(26);
-    public static final Mass ARM_WEIGHT = Pounds.of(3);
-    public static final Mass HAND_WEIGHT = Pounds.of(0);
-    public static final Mass TOTAL_ARM_WEIGHT = ARM_WEIGHT.plus(HAND_WEIGHT);
+    public static final double HAND_MOI = 0;
     public static final double ARM_MOI = 0.189154956; // in kilogram square meters
+    public static final double TOTAL_ARM_MOI = ARM_MOI + HAND_MOI;
 
     public static final Current STATOR_LIMIT = Amps.of(120);
   }
 
-  public static final Angle SOME_ANGLE = Degrees.of(20);
-  public final Angle kArmHandoffAngle = Degrees.of(180);
-  public CANcoder encoder = new CANcoder(62);
+  //TODO: set all possible angles, tune
+  public static final Angle L2_ANGLE = Degrees.of(280);
+
+
+  public CANcoder m_armEncoder = new CANcoder(62);
 
   private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
       .withControlMode(ControlMode.CLOSED_LOOP)
       // Feedback Constants (PID Constants)
+      //TODO: COPY SIM VALUES TO REAL
       .withClosedLoopController(2, 0, 0.2, DegreesPerSecond.of(458), DegreesPerSecondPerSecond.of(688))
 
       .withSimClosedLoopController(20, 0, 0, DegreesPerSecond.of(1250), DegreesPerSecondPerSecond.of(800))
@@ -94,10 +94,6 @@ public class ArmS extends SubsystemBase {
 
       .withStatorCurrentLimit(ArmConstants.STATOR_LIMIT);
 
-  void setMotionProfileMaxAcceleration(LinearAcceleration maxAcceleration) {
-    // Set the max acceleration for motion profile
-    // smcConfig.setMotionProfileMaxAcceleration(maxAcceleration);
-  }
 
   // Vendor motor controller object
   private TalonFX armMotor = new TalonFX(ArmConstants.CAN_ID, TunerConstants.kCANBus2);
@@ -128,21 +124,14 @@ public class ArmS extends SubsystemBase {
   private Arm arm = new Arm(armCfg);
 
   /**
-   * Set the angle of the arm.
-   * 
-   * @param angle Angle to go to.
-   */
-  public Command setAngle(Angle angle) {
-
-    return arm.setAngle(angle);
-  }
-
-  /**
    * Move the arm up and down.
    * 
    * @param dutycycle [-1, 1] speed to set the arm too.
    */
   // public Command set(double dutycycle) { return arm.set(dutycycle);}
+  public Command setAngle(Angle angle) {
+    return arm.setAngle(angle);
+  }
 
   /**
    * Run sysId on the {@link Arm}

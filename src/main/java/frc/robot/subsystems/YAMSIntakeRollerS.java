@@ -92,15 +92,6 @@ public class YAMSIntakeRollerS extends SubsystemBase {
         return roller.getSpeed();
     }
 
-    /**
-     * Set the shooter velocity.
-     *
-     * @param speed Speed to set.
-     * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
-     */
-    public Command setVelocity(AngularVelocity speed) {
-        return roller.setSpeed(speed);
-    }
 
     public Command setVoltage(Voltage volts) {
         return run(() -> rollerMotor.setVoltage(volts.in(Volts)));
