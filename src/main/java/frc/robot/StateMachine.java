@@ -61,7 +61,8 @@ public class StateMachine {
         L4_PRE_SCORE,
         INTAKING_ALGAE_GROUND,
         INTAKING_ALGAE_REEF,
-        HAS_ALGAE
+        ALGAE_STOW,
+        BARGE_PREP
 
     }
 
