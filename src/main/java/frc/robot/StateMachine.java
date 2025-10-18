@@ -213,10 +213,30 @@ public class StateMachine {
 
         }
 
-     else if (currentState == RobotState.L2_PRE_SCORE) {
-            return Commands.sequence(handRoller.handOutTakeRollers(),
-                    setUpperMechanism(Degrees.of(-30), Inches.of(36)));
+        else if (currentState == RobotState.L2_PRE_SCORE) {
+            return Commands.sequence(setUpperMechanism(Degrees.of(-30), Inches.of(36)),
+            handRoller.handOutTakeRollers(),
+            setState(RobotState.NO_GAME_PIECE)
+            );
 
+        }
+        else if (currentState == RobotState.L3_PRE_SCORE) {
+            return Commands.sequence(setUpperMechanism(Degrees.of(-30), Inches.of(48)),
+            handRoller.handOutTakeRollers(),
+            setState(RobotState.NO_GAME_PIECE)
+            );
+        }//Change the inches, not exact right now
+
+        else if (currentState == RobotState.L4_PRE_SCORE){
+            return Commands.sequence(setUpperMechanism(Degrees.of(-30), Inches.of(60)),
+            handRoller.handOutTakeRollers(),
+            setState(RobotState.NO_GAME_PIECE)
+            );
+        }
+        else if (currentState == RobotState.BARGE_PREP){
+            return Commands.sequence(setUpperMechanism(Degrees.of(-15), Inches.of(60)),handRoller.handOutTakeRollers(),
+            setState(RobotState.NO_GAME_PIECE)
+            );
         }
         else 
             return Commands.none();

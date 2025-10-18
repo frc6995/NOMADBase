@@ -119,7 +119,24 @@ public class RobotContainer {
                 drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
         joystick.a().onTrue(
-                stateMachine.intakeCoral());
+                stateMachine.prepL1());
+        joystick.x().onTrue(
+                stateMachine.prepL2());
+        joystick.y().onTrue(
+                stateMachine.prepL3());
+        
+        joystick.b().onTrue(stateMachine.prepL4()); 
+
+        joystick.rightBumper().onTrue(
+                stateMachine.prepGroundAlgae());
+        joystick.leftBumper().onTrue(stateMachine.prepReefAlgae());
+
+        joystick.rightTrigger().onTrue(stateMachine.Score());
+
+        joystick.leftTrigger().onTrue(stateMachine.intakeCoral());
+        
+     
+     
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
