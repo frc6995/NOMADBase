@@ -13,17 +13,21 @@ import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Pounds;
+import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
-
 import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearAcceleration;
+import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -36,100 +40,106 @@ import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import frc.robot.generated.TunerConstants;
 import yams.mechanisms.SmartMechanism;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
-
-
 public class ArmS extends SubsystemBase {
 
-  public static final Angle SOME_ANGLE = Degrees.of(20);
+  public static class ArmConstants {
+    public static final int CAN_ID = 60;
 
+    public static final Distance ARM_LENGTH_INCHES = Inches.of(26);
+    public static final double HAND_MOI = 0;
+    public static final double ARM_MOI = 0.189154956; // in kilogram square meters
+    public static final double TOTAL_ARM_MOI = ARM_MOI + HAND_MOI;
 
-  private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
-  .withControlMode(ControlMode.CLOSED_LOOP)
-  // Feedback Constants (PID Constants)
-  .withClosedLoopController(18
-  , 0, 0.2, DegreesPerSecond.of(458), DegreesPerSecondPerSecond.of(688))
-
-  .withSimClosedLoopController(15, 0, 0.5, DegreesPerSecond.of(458), DegreesPerSecondPerSecond.of(688))
-  // Feedforward Constants
-  .withFeedforward(new ArmFeedforward(-0.1, 1.2, 0))
-  .withSimFeedforward(new ArmFeedforward(0.0, 1.2, 0))
-  // Telemetry name and verbosity level
-  .withTelemetry("ArmMotor", TelemetryVerbosity.HIGH)
-  // Gearing from the motor rotor to final shaft.
-  // In this example gearbox(3,4) is the same as gearbox("3:1","4:1") which corresponds to the gearbox attached to your motor.
-  .withGearing(SmartMechanism.gearing(SmartMechanism.gearbox(12.5,1)))
-  // Motor properties to prevent over currenting.
-  .withMotorInverted(false)
-  .withIdleMode(MotorMode.BRAKE)
-  //.setMotionProfileMaxAcceleration(DegreesPerSecondPerSecond.of(300))
-  
-  .withStatorCurrentLimit(Amps.of(120)
-  );
-
- void setMotionProfileMaxAcceleration(LinearAcceleration maxAcceleration) {
-    // Set the max acceleration for motion profile
-    //smcConfig.setMotionProfileMaxAcceleration(maxAcceleration);
+    public static final Current STATOR_LIMIT = Amps.of(120);
   }
 
+  // TODO: set all possible angles, tune
+  public static final Angle L2_ANGLE = Degrees.of(190);
+  public static final Angle L3_ANGLE = Degrees.of(190);
+  public static final Angle L4_ANGLE = Degrees.of(180);
+  public static final Angle HANDOFF_ANGLE = Degrees.of(-90);
+
+  public CANcoder m_armEncoder = new CANcoder(62);
+
+  private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
+      .withControlMode(ControlMode.CLOSED_LOOP)
+      // Feedback Constants (PID Constants)
+      // TODO: COPY SIM VALUES TO REAL
+      .withClosedLoopController(2, 0, 0.2, DegreesPerSecond.of(458), DegreesPerSecondPerSecond.of(688))
+
+      .withSimClosedLoopController(20, 0, 0, DegreesPerSecond.of(1250), DegreesPerSecondPerSecond.of(800))
+      // Feedforward Constants
+      .withFeedforward(new ArmFeedforward(0, 3, 0))
+      .withSimFeedforward(new ArmFeedforward(0.0, 0.25, 5.7, 0.1))
+      // Telemetry name and verbosity level
+      .withTelemetry("ArmMotor", TelemetryVerbosity.HIGH)
+      // Gearing from the motor rotor to final shaft.
+      // In this example gearbox(3,4) is the same as gearbox("3:1","4:1") which
+      // corresponds to the gearbox attached to your motor.
+      .withGearing(SmartMechanism.gearing(SmartMechanism.gearbox(50 / 12, 50 / 18, 60 / 10)))
+      // Motor properties to prevent over currenting.
+      .withMotorInverted(false)
+      .withIdleMode(MotorMode.BRAKE)
+
+      // TODO: continuous wrapping is currently messed up somehow, but I'm not sure
+      // why
+      // .withContinuousWrapping(Degrees.of(-180), Degrees.of(180))
+
+      // .withExternalEncoder(encoder)
+      // .withExternalGearing(SmartMechanism.gearing(SmartMechanism.gearbox(1)))
+      // .withUseExternalFeedbackEncoder(true)
+
+      .withStatorCurrentLimit(ArmConstants.STATOR_LIMIT);
+
   // Vendor motor controller object
-  private TalonFX Motor40 = new TalonFX(60, TunerConstants.kCANBus2);
+  private TalonFX armMotor = new TalonFX(ArmConstants.CAN_ID, TunerConstants.kCANBus2);
 
   // Create our SmartMotorController from our Spark and config with the NEO.
-  private SmartMotorController mainArmSMC = new TalonFXWrapper(Motor40, DCMotor.getFalcon500(1), smcConfig);
+  private SmartMotorController mainArmSMC = new TalonFXWrapper(armMotor, DCMotor.getFalcon500(1), smcConfig);
 
-  private final MechanismPositionConfig robotToMechanism = new MechanismPositionConfig()
-      .withRelativePosition(new Translation3d(Meters.of(0.1), Meters.of(0), Meters.of(0.15)));
-
-
+  private final MechanismPositionConfig armToMechanism = new MechanismPositionConfig()
+      .withRelativePosition(new Translation3d(Meters.of(0.18415 / 2), Meters.of(0), Meters.of(1.9304 / 2)));
   private ArmConfig armCfg = new ArmConfig(mainArmSMC)
-  // Soft limit is applied to the SmartMotorControllers PID
+      // Soft limit is applied to the SmartMotorControllers PID
 
-  .withHardLimit(Degrees.of(-25), Degrees.of(141))
-  // Starting position is where your arm starts
-  .withStartingPosition(Degrees.of(141))
+      .withHardLimit(Degrees.of(-180), Degrees.of(180))
+      // Starting position is where your arm starts
+      .withStartingPosition(Degrees.of(-90))
 
-  // Length and mass of your arm for sim.
-  .withLength(Feet.of((14/12)))
+      // Length and mass of your arm for sim.
+      .withLength(ArmConstants.ARM_LENGTH_INCHES)
 
-  .withMOI(0.1055457256)
+      .withMOI(ArmConstants.ARM_MOI)
 
-
-  
-  // Telemetry name and verbosity for the arm.
-  .withTelemetry("MainArm", TelemetryVerbosity.HIGH)
-  .withMechanismPositionConfig(robotToMechanism);
-
+      // Telemetry name and verbosity for the arm.
+      .withTelemetry("MainArm", TelemetryVerbosity.HIGH)
+      .withMechanismPositionConfig(armToMechanism);
 
   // Arm Mechanism
   private Arm arm = new Arm(armCfg);
 
-  
-  /**
-   * Set the angle of the arm.
-   * @param angle Angle to go to.
-   */
-  public Command setAngle(Angle angle) {
- 
-    return arm.setAngle(angle);
-    }
-
   /**
    * Move the arm up and down.
+   * 
    * @param dutycycle [-1, 1] speed to set the arm too.
    */
- // public Command set(double dutycycle) { return arm.set(dutycycle);}
+  // public Command set(double dutycycle) { return arm.set(dutycycle);}
+  public Command setAngle(Angle angle) {
+    return arm.setAngle(angle);
+  }
 
   /**
    * Run sysId on the {@link Arm}
    */
-  public Command sysId() { return arm.sysId(Volts.of(7), Volts.of(2).per(Second), Seconds.of(4));}
-
-
+  public Command sysId() {
+    return arm.sysId(Volts.of(7), Volts.of(2).per(Second), Seconds.of(4));
+  }
 
   /**
    * Example command factory method.
@@ -146,7 +156,8 @@ public class ArmS extends SubsystemBase {
   }
 
   /**
-   * An example method querying a boolean state of the subsystem (for example, a digital sensor).
+   * An example method querying a boolean state of the subsystem (for example, a
+   * digital sensor).
    *
    * @return value of some boolean subsystem state, such as a digital sensor.
    */

@@ -36,44 +36,64 @@ import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
+
 public class ElevatorS extends SubsystemBase {
     // Define motors, sensors, and other components here
-    // private final CANSparkMax elevatorMotor = new CANSparkMax(Constants.ELEVATOR_MOTOR_ID, MotorType.kBrushless);
-    // private final DigitalInput limitSwitch = new DigitalInput(Constants.LIMIT_SWITCH_ID);
+    // private final CANSparkMax elevatorMotor = new
+    // CANSparkMax(Constants.ELEVATOR_MOTOR_ID, MotorType.kBrushless);
+    // private final DigitalInput limitSwitch = new
+    // DigitalInput(Constants.LIMIT_SWITCH_ID);
+    ;
+    public final Distance kElevatorMinHeight = Inches.of(13);
+    public final Distance kElevatorMaxHeight = Inches.of(76);
+    public final Distance ELEVATOR_HANDOFF_HEIGHT = Inches.of(50);
 
+    // Todo: set all possible heights, tune
+    public final Distance L2_HEIGHT = Inches.of(30);
+    public final Distance L3_HEIGHT = Inches.of(50);
+    public final Distance L4_HEIGHT = Inches.of(70);
 
-    
     private SmartMotorControllerConfig smcElevConfig = new SmartMotorControllerConfig(this)
-    .withFollowers(Pair.of(new TalonFX(52, TunerConstants.kCANBus2), false))
-    .withControlMode(ControlMode.CLOSED_LOOP)
-    .withMechanismCircumference((Meters.of(Inches.of(0.25).in(Meters) *22)))
-    .withClosedLoopController(10, 0, 0.2, MetersPerSecond.of(1), MetersPerSecondPerSecond.of(5))
-    .withSimClosedLoopController(6, 0, 0, MetersPerSecond.of(3), MetersPerSecondPerSecond.of(5))
-//    .withSoftLimit(Inches.of(0), Inches.of(77.5))
-      .withGearing(gearing(gearbox(1, 5)))
-//      .withExternalEncoder(armMotor.getAbsoluteEncoder())
-      .withIdleMode(MotorMode.BRAKE)
-      .withTelemetry("ElevatorMotor", TelemetryVerbosity.HIGH)
-//      .withSpecificTelemetry("ElevatorMotor", motorTelemetryConfig)
-      .withStatorCurrentLimit(Amps.of(120))
-//      .withVoltageCompensation(Volts.of(12))
-      .withMotorInverted(false)
-//      .withClosedLoopRampRate(Seconds.of(0.25))
-//      .withOpenLoopRampRate(Seconds.of(0.25))
-      //.withFeedforward(new ElevatorFeedforward(0, 2.28, 3.07, 0.41));
-      .withFeedforward(new ElevatorFeedforward(0, 1.4, 0.54, 0.024));
-    
-    private TalonFX leadMotor = new TalonFX(51, TunerConstants.kCANBus2);
+            .withFollowers(Pair.of(new TalonFX(52, TunerConstants.kCANBus), false))
+            .withControlMode(ControlMode.CLOSED_LOOP)
+            .withMechanismCircumference((Meters.of(Inches.of(0.25).in(Meters) * 16)))
+            .withClosedLoopController(10, 0, 0.2, MetersPerSecond.of(1), MetersPerSecondPerSecond.of(5))
+            .withSimClosedLoopController(2, 0, 0, MetersPerSecond.of(2), MetersPerSecondPerSecond.of(5))
+            // .withSoftLimit(Inches.of(0), Inches.of(77.5))
+            .withGearing(gearing(gearbox(1, 5)))
+            // .withExternalEncoder(armMotor.getAbsoluteEncoder())
+            .withIdleMode(MotorMode.BRAKE)
+            .withTelemetry("ElevatorMotor", TelemetryVerbosity.HIGH)
+            // .withSpecificTelemetry("ElevatorMotor", motorTelemetryConfig)
+            .withStatorCurrentLimit(Amps.of(120))
+            // .withVoltageCompensation(Volts.of(12))
+            .withMotorInverted(false)
+            // .withClosedLoopRampRate(Seconds.of(0.25))
+            // .withOpenLoopRampRate(Seconds.of(0.25))
+            // .withFeedforward(new ElevatorFeedforward(0, 2.28, 3.07, 0.41));
+            .withFeedforward(new ElevatorFeedforward(0, 0.35, 0.65, 0.01)); // KG: gravity compensation, KV: velicity
+                                                                            // (multiplied by closed loop controller
+                                                                            // velocity)
+    // KA: acceleration (multiplied by closed loop controller acceleration). Tune
+    // Velocity until line is near same angle as target, tune accel until curve
+    // mathces accuately.
+    // After this, tune KP to help with any small inconsitencies.
 
-    private SmartMotorController elevatorLeadSMC = new TalonFXWrapper(leadMotor, DCMotor.getFalcon500(2), smcElevConfig);
+    private TalonFX leadMotor = new TalonFX(51, TunerConstants.kCANBus);
 
-    
+    private SmartMotorController elevatorLeadSMC = new TalonFXWrapper(leadMotor, DCMotor.getFalcon500(2),
+            smcElevConfig);
+    private final MechanismPositionConfig robotToMechanism = new MechanismPositionConfig()
+            .withRelativePosition(new Translation3d(Meters.of(0.1016), Meters.of(0), Meters.of(0)));
+
     private ElevatorConfig elevconfig = new ElevatorConfig(elevatorLeadSMC)
-    .withStartingHeight(Inches.of(39.875))
-    .withHardLimits(Inches.of(39.875), Inches.of(77.5))
-    .withTelemetry("Elevator", TelemetryVerbosity.HIGH)
-    .withMass(Pounds.of(27.5));
-    
+            .withStartingHeight(Inches.of(13))
+            .withHardLimits(Inches.of(13), Inches.of(76))
+            .withSoftLimits(Inches.of(13), Inches.of(76))
+            .withTelemetry("Elevator", TelemetryVerbosity.HIGH)
+            .withMass(Pounds.of(14))
+            .withMechanismPositionConfig(robotToMechanism);
+
     private Elevator elevator = new Elevator(elevconfig);
 
     public ElevatorS() {
@@ -86,35 +106,35 @@ public class ElevatorS extends SubsystemBase {
         // Code to run periodically, such as checking sensors or updating motor states
         elevator.updateTelemetry();
     }
+
     @Override
     public void simulationPeriodic() {
         // This method will be called once per scheduler run during simulation
         elevator.simIterate();
     }
-  /**
-   * Example command factory method.
-   *
-   * @return a command
-   */
-    public Command setHeight(Distance height) {
-        return elevator.setHeight(height);}
 
+    /**
+     * Example command factory method.
+     *
+     * @return a command
+     */
     public Command set(double dutycycle) {
-        return elevator.set(dutycycle);}
-        
+        return elevator.set(dutycycle);
+    }
 
-  /**
-   * An example method querying a boolean state of the subsystem (for example, a digital sensor).
-   *
-   * @return value of some boolean subsystem state, such as a digital sensor.
-   */
-  public Command sysId() {
-    // Query some boolean state, such as a digital sensor.
-    return elevator.sysId(Volts.of(7), Volts.of(2).per(Second), Seconds.of(4));
+    public Command setHeight(Distance height) {
+        return elevator.setHeight(height);
+    }
+
+    /**
+     * An example method querying a boolean state of the subsystem (for example, a
+     * digital sensor).
+     *
+     * @return value of some boolean subsystem state, such as a digital sensor.
+     */
+    public Command sysId() {
+        // Query some boolean state, such as a digital sensor.
+        return elevator.sysId(Volts.of(7), Volts.of(2).per(Second), Seconds.of(4));
+    }
+
 }
-
-}
-  
-
- 
-

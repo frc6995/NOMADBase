@@ -20,7 +20,6 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.IntakeRollerS.IntakeRollersConstants;
 import yams.mechanisms.SmartMechanism;
 import yams.mechanisms.config.ShooterConfig;
 import yams.mechanisms.velocity.Shooter;
@@ -93,16 +92,6 @@ public class YAMSIntakeRollerS extends SubsystemBase {
         return roller.getSpeed();
     }
 
-    /**
-     * Set the shooter velocity.
-     *
-     * @param speed Speed to set.
-     * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
-     */
-    public Command setVelocity(AngularVelocity speed) {
-        return roller.setSpeed(speed);
-    }
-
     public Command setVoltage(Voltage volts) {
         return run(() -> rollerMotor.setVoltage(volts.in(Volts)));
     }
@@ -131,6 +120,11 @@ public class YAMSIntakeRollerS extends SubsystemBase {
 
     public Command outTakeRollers() {
         return setVoltage(YAMSIntakeRollerConstants.OUTTAKE_VOLTAGE);
+    }
+
+    public Command handoffOutTake() {
+        return setVoltage(YAMSIntakeRollerConstants.OUTTAKE_VOLTAGE)
+        .withTimeout(0.2);
     }
 
     public Command coralIntake() {

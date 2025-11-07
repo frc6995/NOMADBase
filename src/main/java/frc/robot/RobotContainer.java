@@ -6,20 +6,33 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.lang.Thread.State;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.therekrab.autopilot.APTarget;
+import com.ctre.phoenix6.hardware.*;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ScheduleCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
+import choreo.auto.AutoChooser;
+import choreo.auto.AutoFactory;
+import frc.robot.Autos;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmS;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -27,9 +40,9 @@ import frc.robot.subsystems.ElevatorS;
 import frc.robot.subsystems.HandS;
 
 import frc.robot.subsystems.HandS.HandConstants;
-
 import frc.robot.subsystems.YAMSIntakePivot;
 import frc.robot.subsystems.YAMSIntakeRollerS;
+import frc.robot.StateMachine;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -49,27 +62,42 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
-    //public final IntakePivotS intakePivot = new IntakePivotS();
+    // public final IntakePivotS intakePivot = new IntakePivotS();
 
-    // public final IntakeRollerS intakeRoller = new IntakeRollerS();
     public final YAMSIntakeRollerS intakeRoller = new YAMSIntakeRollerS();
 
     public final HandS handRoller = new HandS();
 
-    public final ArmS Arm = new ArmS();
+    public final ArmS arm = new ArmS();
 
     public final ElevatorS elevator = new ElevatorS();
 
     public final YAMSIntakePivot yIntakePivot = new YAMSIntakePivot();
 
+    private final AutoFactory autoFactory;
     private Mechanism2d VISUALIZER;
+    private final Autos autoRoutines;
+    private final AutoChooser m_chooser = new AutoChooser();
+    private final StateMachine stateMachine = new StateMachine();
 
     public RobotContainer() {
-        VISUALIZER = logger.MECH_VISUALIZER; 
+
+        drivetrain.resetOdometry(new Pose2d());
+        VISUALIZER = logger.MECH_VISUALIZER;
 
         configureBindings();
-        SmartDashboard.putData("Visualizer", VISUALIZER);
+        SmartDashboard.putData("Visualzer", VISUALIZER);
+
+        autoFactory = drivetrain.createAutoFactory();
+        autoRoutines = new Autos(drivetrain, arm, yIntakePivot, intakeRoller, elevator, null, autoFactory);
+        m_chooser.addRoutine("FourCoralRight", autoRoutines::FourCoralRight);
+        m_chooser.addRoutine("FourCoralLeft", autoRoutines::FourCoralLeft);
+        m_chooser.addRoutine("BacksideAuto", autoRoutines::BacksideAuto);
+        SmartDashboard.putData("Auto Mode", m_chooser);
+
     }
+
+    public double xButtonPressedTime = 0;
 
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
@@ -90,64 +118,31 @@ public class RobotContainer {
         RobotModeTriggers.disabled().whileTrue(
                 drivetrain.applyRequest(() -> idle).ignoringDisable(true));
 
+        joystick.a().onTrue(
+                stateMachine.intakeCoral());
 
-                //set button bindings
-                joystick.a().onTrue(intakeCoral());
-                joystick.b().onTrue(Handoff());
-               joystick.x().onTrue(Stow());
-                joystick.y().whileTrue(L1Score());
-                joystick.rightBumper().whileTrue(elevator.setHeight(Inches.of(70)));
-                joystick.rightBumper().whileTrue(elevator.setHeight(Inches.of(12)));
+        drivetrain.registerTelemetry(logger::telemeterize);
 
-        
-                drivetrain.registerTelemetry(logger::telemeterize);
+    }
 
-            }
-        
-            public Command getAutonomousCommand() {
-                return Commands.print("No autonomous command configured");
-        
-            }
-            
+    public Command getAutonomousCommand() {
+        return m_chooser.selectedCommand();
 
-            //Commands combining multiple subsystem functions
-            public Command intakeCoral() {
-                return Commands.race(yIntakePivot.setAngle(yIntakePivot.DOWN_ANGLE), intakeRoller.coralIntake());
-            }
-        
-            public Command Stow() {
-                return yIntakePivot.setAngle(yIntakePivot.L1_ANGLE);
-            }
-            public Command L1Score() {
-                return intakeRoller.outTakeRollers();
-            }
-        
-            public Command Handoff() {
-                return yIntakePivot.setAngle(yIntakePivot.HANDOFF_ANGLE);
-            }
-            /* 
-            public Command Arm_L2scoring(){
-                return Arm.moveToAngle(PivotConstants.SCORE_ANGLE_L2);
-            }
-            public Command Arm_L3Scoring(){
-                return Arm.moveToAngle(PivotConstants.SCORE_ANGLE_L3);
-            }
-            public Command Arm_L4Scoring(){
-                return Arm.setAngle(Arm.SCORE_ANGLE_L4);
-            }
-            public Command Arm_Hand_Off_Angle(){
-                return Arm.setAngle(Arm.HANDOFF_ANGLE);
-                /* */
-            
-            public Command Hand_Voltage_Scoring(){
-                return handRoller.setHandRollerVoltage(HandConstants.HAND_ROLLER_OUT_VOLTAGE);
-            }
-            public Command Hand_Rollers_In(){
-                return handRoller.HandCoralIntake();
-            }
-            public Command Arm_Scoring_postion(){
-                return Arm.setAngle(Arm.SOME_ANGLE);
-            }
-                
-        }
+    }
 
+    // TODO: add to state machine, delete
+    public Command Stow() {
+        return yIntakePivot.setAngle(YAMSIntakePivot.L1_ANGLE);
+    }
+
+    public Command L1Score() {
+        return intakeRoller.outTakeRollers();
+    }
+
+    public Command Handoff() {
+        return yIntakePivot.setAngle(YAMSIntakePivot.HANDOFF_ANGLE).until(
+                () -> Math.abs(yIntakePivot.getAngle().in(Degrees) - YAMSIntakePivot.HANDOFF_ANGLE.in(Degrees)) < 2.0);
+
+    }
+
+}
