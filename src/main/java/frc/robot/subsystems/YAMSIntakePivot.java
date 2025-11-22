@@ -41,21 +41,36 @@ import yams.mechanisms.SmartMechanism;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class YAMSIntakePivot extends SubsystemBase {
+  public class intakeConstants{
+    public static final Angle SOME_ANGLE = Degrees.of(20);
+    public static final Angle DOWN_ANGLE = Degrees.of(-35);
+    public static final Angle L1_ANGLE = Degrees.of(65);
+    public static final Angle HANDOFF_ANGLE = Degrees.of(135);
+    public static final double KP = 18;
+    public static final double KI = 0;
+    public static final double KD = 0.2;
+    public static final double KS = -0.1;
+    public static final double KG = 1.2;
+    public static final double KV = 0;
+    public static final double KA = 0;
+    public static final double VELOCITY = 458;
+    public static final double ACCELERATION = 688;
+    public static final int MOTOR_ID = 40;
+    public static final double STATOR_CURRENT_LIMIT = 120;
+    public static final double MOI = 0.1055457256;
+  }
 
-  public static final Angle SOME_ANGLE = Degrees.of(20);
-  public static final Angle DOWN_ANGLE = Degrees.of(-35);
-  public static final Angle L1_ANGLE = Degrees.of(65);
-  public static final Angle HANDOFF_ANGLE = Degrees.of(135);
 
   private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
       .withControlMode(ControlMode.CLOSED_LOOP)
       // Feedback Constants (PID Constants)
-      .withClosedLoopController(18, 0, 0.2, DegreesPerSecond.of(458), DegreesPerSecondPerSecond.of(688))
+      .withClosedLoopController(intakeConstants.KP, intakeConstants.KI, intakeConstants.KD, DegreesPerSecond.of(intakeConstants.VELOCITY), DegreesPerSecondPerSecond.of(intakeConstants.ACCELERATION))
 
-      .withSimClosedLoopController(18, 0, 0.2, DegreesPerSecond.of(458), DegreesPerSecondPerSecond.of(688))
+      .withSimClosedLoopController(intakeConstants.KP, intakeConstants.KI, intakeConstants.KD, DegreesPerSecond.of(intakeConstants.VELOCITY),
+          DegreesPerSecondPerSecond.of(intakeConstants.ACCELERATION))
       // Feedforward Constants
-      .withFeedforward(new ArmFeedforward(-0.1, 1.2, 0))
-      .withSimFeedforward(new ArmFeedforward(0.0, 1.2, 0))
+      .withFeedforward(new ArmFeedforward(intakeConstants.KS, intakeConstants.KG, intakeConstants.KV, intakeConstants.KA))
+      .withSimFeedforward(new ArmFeedforward(intakeConstants.KS, intakeConstants.KG, intakeConstants.KV, intakeConstants.KA))
       // Telemetry name and verbosity level
       .withTelemetry("ArmMotor", TelemetryVerbosity.HIGH)
       // Gearing from the motor rotor to final shaft.
@@ -67,7 +82,7 @@ public class YAMSIntakePivot extends SubsystemBase {
       .withIdleMode(MotorMode.BRAKE)
       // .setMotionProfileMaxAcceleration(DegreesPerSecondPerSecond.of(300))
 
-      .withStatorCurrentLimit(Amps.of(120));
+      .withStatorCurrentLimit(Amps.of(intakeConstants.STATOR_CURRENT_LIMIT));
 
   void setMotionProfileMaxAcceleration(LinearAcceleration maxAcceleration) {
     // Set the max acceleration for motion profile
@@ -75,10 +90,10 @@ public class YAMSIntakePivot extends SubsystemBase {
   }
 
   // Vendor motor controller object
-  private TalonFX Motor40 = new TalonFX(40, TunerConstants.kCANBus2);
+  private TalonFX intakeMotor = new TalonFX(intakeConstants.MOTOR_ID, TunerConstants.kCANBus2);
 
   // Create our SmartMotorController from our Spark and config with the NEO.
-  private SmartMotorController IntakeSMC = new TalonFXWrapper(Motor40, DCMotor.getFalcon500(1), smcConfig);
+  private SmartMotorController IntakeSMC = new TalonFXWrapper(intakeMotor, DCMotor.getFalcon500(1), smcConfig);
 
   private final MechanismPositionConfig robotToMechanism = new MechanismPositionConfig()
       .withRelativePosition(new Translation3d(Meters.of(0.1), Meters.of(0), Meters.of(0.15)));
@@ -93,7 +108,7 @@ public class YAMSIntakePivot extends SubsystemBase {
       // Length and mass of your arm for sim.
       .withLength(Feet.of((14 / 12)))
 
-      .withMOI(0.1055457256)
+      .withMOI(intakeConstants.MOI)
 
       // Telemetry name and verbosity for the arm.
       .withTelemetry("Intake", TelemetryVerbosity.HIGH)
@@ -166,5 +181,9 @@ public class YAMSIntakePivot extends SubsystemBase {
 
   public Angle getAngle() {
     return arm.getAngle();
+  }
+
+  public Command goToAngle() {
+    return run(() -> arm.setAngle(intakeConstants.SOME_ANGLE));
   }
 }

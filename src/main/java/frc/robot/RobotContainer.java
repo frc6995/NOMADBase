@@ -34,14 +34,8 @@ import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 import frc.robot.Autos;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.ArmS;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.ElevatorS;
-import frc.robot.subsystems.HandS;
-
-import frc.robot.subsystems.HandS.HandConstants;
 import frc.robot.subsystems.YAMSIntakePivot;
-import frc.robot.subsystems.YAMSIntakeRollerS;
 import frc.robot.StateMachine;
 
 public class RobotContainer {
@@ -64,14 +58,6 @@ public class RobotContainer {
 
     // public final IntakePivotS intakePivot = new IntakePivotS();
 
-    public final YAMSIntakeRollerS intakeRoller = new YAMSIntakeRollerS();
-
-    public final HandS handRoller = new HandS();
-
-    public final ArmS arm = new ArmS();
-
-    public final ElevatorS elevator = new ElevatorS();
-
     public final YAMSIntakePivot yIntakePivot = new YAMSIntakePivot();
 
     private final AutoFactory autoFactory;
@@ -89,10 +75,8 @@ public class RobotContainer {
         SmartDashboard.putData("Visualzer", VISUALIZER);
 
         autoFactory = drivetrain.createAutoFactory();
-        autoRoutines = new Autos(drivetrain, arm, yIntakePivot, intakeRoller, elevator, null, autoFactory);
+        autoRoutines = new Autos(drivetrain, yIntakePivot, autoFactory);
         m_chooser.addRoutine("FourCoralRight", autoRoutines::FourCoralRight);
-        m_chooser.addRoutine("FourCoralLeft", autoRoutines::FourCoralLeft);
-        m_chooser.addRoutine("BacksideAuto", autoRoutines::BacksideAuto);
         SmartDashboard.putData("Auto Mode", m_chooser);
 
     }
@@ -117,11 +101,13 @@ public class RobotContainer {
         final var idle = new SwerveRequest.Idle();
         RobotModeTriggers.disabled().whileTrue(
                 drivetrain.applyRequest(() -> idle).ignoringDisable(true));
-
-        joystick.a().onTrue(
-                stateMachine.intakeCoral());
-
+        /*
+         * joystick.a().onTrue(
+         * stateMachine.intakeCoral());
+         */
         drivetrain.registerTelemetry(logger::telemeterize);
+        //Assigns button b on a zbox controller to the command "goToAngle".
+        joystick.b().onTrue(yIntakePivot.goToAngle());
 
     }
 
@@ -129,20 +115,4 @@ public class RobotContainer {
         return m_chooser.selectedCommand();
 
     }
-
-    // TODO: add to state machine, delete
-    public Command Stow() {
-        return yIntakePivot.setAngle(YAMSIntakePivot.L1_ANGLE);
-    }
-
-    public Command L1Score() {
-        return intakeRoller.outTakeRollers();
-    }
-
-    public Command Handoff() {
-        return yIntakePivot.setAngle(YAMSIntakePivot.HANDOFF_ANGLE).until(
-                () -> Math.abs(yIntakePivot.getAngle().in(Degrees) - YAMSIntakePivot.HANDOFF_ANGLE.in(Degrees)) < 2.0);
-
-    }
-
 }

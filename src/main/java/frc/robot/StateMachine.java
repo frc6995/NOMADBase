@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
@@ -29,28 +28,16 @@ import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 import frc.robot.Autos;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.ArmS;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.ElevatorS;
-import frc.robot.subsystems.HandS;
 import edu.wpi.first.units.measure.Distance;
 
-import frc.robot.subsystems.HandS.HandConstants;
 import frc.robot.subsystems.YAMSIntakePivot;
-import frc.robot.subsystems.YAMSIntakeRollerS;
+import frc.robot.subsystems.YAMSIntakePivot.intakeConstants;
 
 public class StateMachine {
     // TODO: add logging/simulation for states
 
-    public final YAMSIntakeRollerS intakeRoller = new YAMSIntakeRollerS();
-
-    public final HandS handRoller = new HandS();
-
-    public final ArmS arm = new ArmS();
-
-    public final ElevatorS elevator = new ElevatorS();
     public final YAMSIntakePivot yIntakePivot = new YAMSIntakePivot();
-
     public enum RobotState {
         // Todo: add all states as in button mapping doc
         CORAL_INTAKING,
@@ -74,79 +61,20 @@ public class StateMachine {
 
     // Functions below:
     // Todo: add command that combines intakeCoral and stowCoral, update states
-    public Command intakeCoral() {
-        return Commands.sequence(setState(RobotState.CORAL_INTAKING),
-                Commands.race(yIntakePivot.setAngle(YAMSIntakePivot.DOWN_ANGLE), intakeRoller.coralIntake()));
-    }
 
     public Command stowCoral() {
         return Commands.sequence(setState(RobotState.HANDOFF),
-                yIntakePivot.setAngle(YAMSIntakePivot.HANDOFF_ANGLE));
-    }
-
-    public Command setUpperMechanism(Angle armAngle, Distance elevHeight) {
-        return Commands.parallel(
-                arm.setAngle(armAngle),
-                elevator.setHeight(elevHeight));
-
+                yIntakePivot.setAngle(intakeConstants.HANDOFF_ANGLE));
     }
 
     // Commands below:
     // TODO: add handoff sequence
 
-    public Command prepL4() {
-        if (currentState == RobotState.HANDOFF) {
-            return Commands.sequence(setState(RobotState.L4_PRE_SCORE),
-                    setUpperMechanism(ArmS.HANDOFF_ANGLE, elevator.ELEVATOR_HANDOFF_HEIGHT),
-
-                    Commands.parallel(handRoller.HandCoralIntake(),
-                            intakeRoller.handoffOutTake()),
-                            Commands.sequence(
-                                    setUpperMechanism(ArmS.L4_ANGLE, elevator.L4_HEIGHT)));
-
-        } else {
-            return Commands.none();
-
-        }
-    }
-
-    public Command prepL3() {
-        if (currentState == RobotState.HANDOFF) {
-            return Commands.sequence(setState(RobotState.L3_PRE_SCORE),
-                    setUpperMechanism(ArmS.HANDOFF_ANGLE, elevator.ELEVATOR_HANDOFF_HEIGHT),
-
-                    Commands.parallel(handRoller.HandCoralIntake(),
-                            intakeRoller.handoffOutTake()),
-                            Commands.sequence(
-                                    setUpperMechanism(ArmS.L3_ANGLE, elevator.L3_HEIGHT)));
-
-        } else {
-            return Commands.none();
-
-        }
-    }
-
-    public Command prepL2() {
-        if (currentState == RobotState.HANDOFF) {
-            return Commands.sequence(setState(RobotState.L2_PRE_SCORE),
-                    setUpperMechanism(ArmS.HANDOFF_ANGLE, elevator.ELEVATOR_HANDOFF_HEIGHT),
-
-                    Commands.parallel(handRoller.HandCoralIntake(),
-                            intakeRoller.handoffOutTake()),
-                            Commands.sequence(
-                                    setUpperMechanism(ArmS.L2_ANGLE, elevator.L2_HEIGHT)));
-
-        } else {
-            return Commands.none();
-
-        }
-    }
-
     public Command prepL1() {
         if (currentState == RobotState.HANDOFF) {
             return Commands.sequence(setState(RobotState.L1_PRE_SCORE),
-            yIntakePivot.setAngle(yIntakePivot.L1_ANGLE)
-            
+                    yIntakePivot.setAngle(intakeConstants.L1_ANGLE)
+
             );
 
         } else {
