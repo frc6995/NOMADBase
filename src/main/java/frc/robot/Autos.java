@@ -77,8 +77,8 @@ public class Autos {
 
     }
 
-    public AutoRoutine FourCoralRight() {
-        final AutoRoutine routine = m_factory.newRoutine("FourCoralRight");
+    public AutoRoutine simpleAuto() {
+        final AutoRoutine routine = m_factory.newRoutine("Simple Auto");
         final AutoTrajectory traj = routine.trajectory("1");
         routine.active().onTrue(
                 traj.resetOdometry()

@@ -76,7 +76,7 @@ public class RobotContainer {
 
         autoFactory = drivetrain.createAutoFactory();
         autoRoutines = new Autos(drivetrain, yIntakePivot, autoFactory);
-        m_chooser.addRoutine("FourCoralRight", autoRoutines::FourCoralRight);
+        m_chooser.addRoutine("Simple Auto", autoRoutines::simpleAuto);
         SmartDashboard.putData("Auto Mode", m_chooser);
 
     }
