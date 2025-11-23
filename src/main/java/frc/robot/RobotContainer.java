@@ -63,7 +63,7 @@ public class RobotContainer {
     private final AutoFactory autoFactory;
     private Mechanism2d VISUALIZER;
     private final Autos autoRoutines;
-    private final AutoChooser m_chooser = new AutoChooser();
+    public final AutoChooser m_chooser = new AutoChooser();
     private final StateMachine stateMachine = new StateMachine();
 
     public RobotContainer() {
@@ -75,8 +75,7 @@ public class RobotContainer {
         SmartDashboard.putData("Visualzer", VISUALIZER);
 
         autoFactory = drivetrain.createAutoFactory();
-        autoRoutines = new Autos(drivetrain, yIntakePivot, autoFactory);
-        m_chooser.addRoutine("Simple Auto", autoRoutines::simpleAuto);
+        autoRoutines = new Autos(drivetrain, yIntakePivot, autoFactory, this, stateMachine);
         SmartDashboard.putData("Auto Mode", m_chooser);
 
     }
