@@ -105,7 +105,7 @@ public class RobotContainer {
          * stateMachine.intakeCoral());
          */
         drivetrain.registerTelemetry(logger::telemeterize);
-        //Assigns button b on a zbox controller to the command "goToAngle".
+        // Assigns button b on a zbox controller to the command "goToAngle".
         joystick.b().onTrue(yIntakePivot.goToAngle());
 
     }

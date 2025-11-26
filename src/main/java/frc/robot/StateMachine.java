@@ -38,6 +38,7 @@ public class StateMachine {
     // TODO: add logging/simulation for states
 
     public final YAMSIntakePivot yIntakePivot = new YAMSIntakePivot();
+
     public enum RobotState {
         // Todo: add all states as in button mapping doc
         CORAL_INTAKING,
@@ -53,7 +54,7 @@ public class StateMachine {
 
     }
 
-    private RobotState currentState = RobotState.HANDOFF;
+    public RobotState currentState = RobotState.HANDOFF;
 
     public Command setState(RobotState newState) {
         return new InstantCommand(() -> currentState = newState);
@@ -71,16 +72,9 @@ public class StateMachine {
     // TODO: add handoff sequence
 
     public Command prepL1() {
-        if (currentState == RobotState.HANDOFF) {
-            return Commands.sequence(setState(RobotState.L1_PRE_SCORE),
-                    yIntakePivot.setAngle(intakeConstants.L1_ANGLE)
+        return Commands.sequence(setState(RobotState.L1_PRE_SCORE),
+                yIntakePivot.setAngle(intakeConstants.L1_ANGLE)
 
-            );
-
-        } else {
-            return Commands.none();
-
-        }
+        );
     }
-
 }

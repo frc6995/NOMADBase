@@ -75,9 +75,10 @@ public class Autos {
         m_container = container;
 
         container.m_chooser.addRoutine(simpleAutoName, this::simpleAuto);
+        container.m_chooser.addRoutine(backsideL1Name, this::backsideL1);
     }
 
-
+    //Example auto
     String simpleAutoName = "Simple Auto";
     public AutoRoutine simpleAuto() {
         final AutoRoutine routine = m_factory.newRoutine(simpleAutoName);
@@ -88,29 +89,22 @@ public class Autos {
         return routine;
     }
 
+    //Example auto
+    String backsideL1Name = "Backside L1";
     public AutoRoutine backsideL1() {
-        final AutoRoutine routine = m_factory.newRoutine("Backside L1");
-        var traj = routine.trajectory("BacksideL1(1)");
+        final AutoRoutine routine = m_factory.newRoutine(backsideL1Name);
+        var firstScore = routine.trajectory("BacksideL1(1)");
         var postScoreIntake = routine.trajectory("BacksideL1(2)");
         routine.active().onTrue(
-                traj.resetOdometry()
-                        .andThen(traj.cmd())
-                      //  traj.atTime(0.5).onTrue(stateMachine.prepL1())
+                firstScore.resetOdometry()
+                        .andThen(firstScore.cmd()
+                                .andThen(waitSeconds(SCORE_WAIT))
+                                .andThen(postScoreIntake.cmd())));
 
-                        );
+        firstScore.atTimeBeforeEnd(0.2).onTrue(stateMachine.prepL1());
+        // firstScore.doneFor(0.1).onTrue(null/*stateMachine.scoreL1());
+        // firstScore.atTimeBeforeEnd(0.1).onTrue(stateMachine.intakeCoral());
         return routine;
     }
-    /*
-     * var traj = routine.trajectory("1");
-     * traj.atTime(0).onTrue(m_arm.goToPosition(Arm.Positions.PIVOT_SIDE_LOW_ALGAE))
-     * .onTrue(m_hand.inAlgae());
-     * 
-     * var toScore = routine.trajectory("3");
-     * traj.chain(toScore);
-     * var moveback = routine.trajectory("4");
-     * toScore.atTime(0.3).onTrue(m_arm.goToPosition(Arm.Positions.STOW));
-     * toScore.done().onTrue(bargeUpAndOutVoltage()).onTrue(waitSeconds(1.2).andThen
-     * (moveback.spawnCmd()));
-     */
 
 }
