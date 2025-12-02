@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Vision;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 
@@ -367,6 +368,19 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      *                                 in the form [x, y, theta]ᵀ, with units in
      *                                 meters and radians.
      */
+
+    // Add a method to integrate MegaTag 2 vision measurements
+    public void addMegaTag2VisionMeasurement(Vision vision) {
+        // Fetch MegaTag 2 data from Vision.java
+        Pose2d megaTag2Pose = vision.getMegaTag2Pose();
+        double megaTag2Timestamp = vision.getMegaTag2Timestamp();
+        Matrix<N3, N1> megaTag2StdDevs = vision.getMegaTag2StdDevs();
+
+        // Add the vision measurement to the Kalman Filter
+        addVisionMeasurement(megaTag2Pose, megaTag2Timestamp, megaTag2StdDevs);
+    }
+
+    // Existing addVisionMeasurement method
     @Override
     public void addVisionMeasurement(
             Pose2d visionRobotPoseMeters,
@@ -376,6 +390,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 visionMeasurementStdDevs);
     }
 
+    // Existing methods
     private final SwerveSample[] emptyTrajectory = new SwerveSample[0];
     public SwerveSample[] currentTrajectory = emptyTrajectory;
 
