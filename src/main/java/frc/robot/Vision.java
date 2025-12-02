@@ -25,10 +25,11 @@ public class Vision {
         this.m_gyro = gyro;
     }
 
+    LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
+
     public void update() {
         LimelightHelpers.SetRobotOrientation("limelight",
                 m_poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
-        LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
 
         LimelightHelpers.SetIMUMode("limelight", 0);
         boolean doRejectUpdate = false;
@@ -51,16 +52,16 @@ public class Vision {
 
     public Pose2d getMegaTag2Pose() {
         // Return the MegaTag 2 pose
-        return getMegaTag2Pose(); // Replace with actual pose data
+        return mt2.pose;
     }
 
     public double getMegaTag2Timestamp() {
         // Return the MegaTag 2 timestamp
-        return getMegaTag2Timestamp(); // Replace with actual timestamp
+        return mt2.timestampSeconds;
     }
 
     public Matrix<N3, N1> getMegaTag2StdDevs() {
-        // Return the MegaTag 2 standard deviations
-        return getMegaTag2StdDevs(); // Replace with actual standard deviation data
+        // Return nothing
+        return getMegaTag2StdDevs();
     }
 }

@@ -376,7 +376,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         double megaTag2Timestamp = vision.getMegaTag2Timestamp();
         Matrix<N3, N1> megaTag2StdDevs = vision.getMegaTag2StdDevs();
 
-        // Add the vision measurement to the Kalman Filter
         addVisionMeasurement(megaTag2Pose, megaTag2Timestamp, megaTag2StdDevs);
     }
 
@@ -390,7 +389,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 visionMeasurementStdDevs);
     }
 
-    // Existing methods
     private final SwerveSample[] emptyTrajectory = new SwerveSample[0];
     public SwerveSample[] currentTrajectory = emptyTrajectory;
 
