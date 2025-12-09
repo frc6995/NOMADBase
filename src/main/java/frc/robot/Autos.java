@@ -109,7 +109,7 @@ public class Autos {
         routine.active().onTrue(
                 traj.resetOdometry()
                         .andThen(traj.cmd())
-                        .andThen(createAutoAlignCommand(new Pose2d(), new Rotation2d())));
+                        .andThen(createAutoAlignCommand(new Pose2d(ChoreoVariables.getPose("L1Score").getX(), ChoreoVariables.getPose("L1Score").getY(), new Rotation2d()))));
         return routine;
     }
 
