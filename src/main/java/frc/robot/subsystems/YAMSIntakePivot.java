@@ -43,7 +43,7 @@ import yams.mechanisms.SmartMechanism;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class YAMSIntakePivot extends SubsystemBase {
-  public class intakeConstants{
+  public class intakeConstants {
     public static final Angle SOME_ANGLE = Degrees.of(20);
     public static final Angle DOWN_ANGLE = Degrees.of(-35);
     public static final Angle L1_ANGLE = Degrees.of(65);
@@ -62,34 +62,29 @@ public class YAMSIntakePivot extends SubsystemBase {
     public static final double MOI = 0.1055457256;
   }
 
-
   private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
       .withControlMode(ControlMode.CLOSED_LOOP)
       // Feedback Constants (PID Constants)
-      .withClosedLoopController(intakeConstants.KP, intakeConstants.KI, intakeConstants.KD, DegreesPerSecond.of(intakeConstants.VELOCITY), DegreesPerSecondPerSecond.of(intakeConstants.ACCELERATION))
-
-      .withSimClosedLoopController(intakeConstants.KP, intakeConstants.KI, intakeConstants.KD, DegreesPerSecond.of(intakeConstants.VELOCITY),
+      .withClosedLoopController(intakeConstants.KP, intakeConstants.KI, intakeConstants.KD,
+          DegreesPerSecond.of(intakeConstants.VELOCITY), DegreesPerSecondPerSecond.of(intakeConstants.ACCELERATION))
+      // can be seperate for sim:
+      .withSimClosedLoopController(intakeConstants.KP, intakeConstants.KI, intakeConstants.KD,
+          DegreesPerSecond.of(intakeConstants.VELOCITY),
           DegreesPerSecondPerSecond.of(intakeConstants.ACCELERATION))
       // Feedforward Constants
-      .withFeedforward(new ArmFeedforward(intakeConstants.KS, intakeConstants.KG, intakeConstants.KV, intakeConstants.KA))
-      .withSimFeedforward(new ArmFeedforward(intakeConstants.KS, intakeConstants.KG, intakeConstants.KV, intakeConstants.KA))
+      .withFeedforward(
+          new ArmFeedforward(intakeConstants.KS, intakeConstants.KG, intakeConstants.KV, intakeConstants.KA))
+      .withSimFeedforward(
+          new ArmFeedforward(intakeConstants.KS, intakeConstants.KG, intakeConstants.KV, intakeConstants.KA))
       // Telemetry name and verbosity level
       .withTelemetry("ArmMotor", TelemetryVerbosity.HIGH)
       // Gearing from the motor rotor to final shaft.
       // In this example gearbox(3,4) is the same as gearbox("3:1","4:1") which
       // corresponds to the gearbox attached to your motor.
       .withGearing(SmartMechanism.gearing(SmartMechanism.gearbox(12.5, 1)))
-      // Motor properties to prevent over currenting.
       .withMotorInverted(false)
       .withIdleMode(MotorMode.BRAKE)
-      // .setMotionProfileMaxAcceleration(DegreesPerSecondPerSecond.of(300))
-
       .withStatorCurrentLimit(Amps.of(intakeConstants.STATOR_CURRENT_LIMIT));
-
-  void setMotionProfileMaxAcceleration(LinearAcceleration maxAcceleration) {
-    // Set the max acceleration for motion profile
-    // smcConfig.setMotionProfileMaxAcceleration(maxAcceleration);
-  }
 
   // Vendor motor controller object
   private TalonFX intakeMotor = new TalonFX(intakeConstants.MOTOR_ID, TunerConstants.kCANBus2);
@@ -130,42 +125,10 @@ public class YAMSIntakePivot extends SubsystemBase {
   }
 
   /**
-   * Move the arm up and down.
-   * 
-   * @param dutycycle [-1, 1] speed to set the arm too.
-   */
-  // public Command set(double dutycycle) { return arm.set(dutycycle);}
-
-  /**
    * Run sysId on the {@link Arm}
    */
   public Command sysId() {
     return arm.sysId(Volts.of(7), Volts.of(2).per(Second), Seconds.of(4));
-  }
-
-  /**
-   * Example command factory method.
-   *
-   * @return a command
-   */
-  public Command exampleMethodCommand() {
-    // Inline construction of command goes here.
-    // Subsystem::RunOnce implicitly requires `this` subsystem.
-    return runOnce(
-        () -> {
-          /* one-time action goes here */
-        });
-  }
-
-  /**
-   * An example method querying a boolean state of the subsystem (for example, a
-   * digital sensor).
-   *
-   * @return value of some boolean subsystem state, such as a digital sensor.
-   */
-  public boolean exampleCondition() {
-    // Query some boolean state, such as a digital sensor.
-    return false;
   }
 
   @Override
