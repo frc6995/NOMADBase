@@ -79,28 +79,6 @@ public class Autos {
         container.m_chooser.addRoutine(backsideL1Name, this::backsideL1);
     }
 
-    /**
-     * Creates a new Command using the Autopilot AutoAlign to navigate to the targetPose. 
-     * 
-     * @param targetPose The desired ending Pose2d
-     * @return The Command to navigate to the given Pose2d.
-     */
-    public Command createAutoAlignCommand(Pose2d targetPose) {
-        return new AutoAlign(new APTarget(targetPose), m_drivebase);
-    }
-
-    /**
-     * Creates a new Command using the Autopilot AutoAlign to navigate to the targetPose. Takes a desired entry angle
-     * when approaching the targetPose.
-     * 
-     * @param targetPose The desired ending Pose2d
-     * @param entryAngle The desired angle to approach the targetPose with.
-     * @return The Command to navigate to the given Pose2d.
-     */
-    public Command createAutoAlignCommand(Pose2d targetPose, Rotation2d entryAngle) {
-        return new AutoAlign(new APTarget(targetPose).withEntryAngle(entryAngle), m_drivebase);
-    }
-
     //Example auto
     String simpleAutoName = "Simple Auto";
     public AutoRoutine simpleAuto() {
@@ -131,4 +109,25 @@ public class Autos {
         return routine;
     }
 
+    /**
+     * Creates a new Command using the Autopilot AutoAlign to navigate to the targetPose. 
+     * 
+     * @param targetPose The desired ending Pose2d
+     * @return The Command to navigate to the given Pose2d.
+     */
+    public Command createAutoAlignCommand(Pose2d targetPose) {
+        return new AutoAlign(new APTarget(targetPose), m_drivebase);
+    }
+
+    /**
+     * Creates a new Command using the Autopilot AutoAlign to navigate to the targetPose. Takes a desired entry angle
+     * when approaching the targetPose.
+     * 
+     * @param targetPose The desired ending Pose2d
+     * @param entryAngle The desired angle to approach the targetPose with.
+     * @return The Command to navigate to the given Pose2d.
+     */
+    public Command createAutoAlignCommand(Pose2d targetPose, Rotation2d entryAngle) {
+        return new AutoAlign(new APTarget(targetPose).withEntryAngle(entryAngle), m_drivebase);
+    }
 }
