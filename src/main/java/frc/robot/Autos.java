@@ -54,11 +54,13 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.YAMSIntakePivot;
+import frc.robot.subsystems.YAMSIntakePivot.intakeConstants;
 
 public class Autos {
     private final AutoFactory m_factory;
@@ -109,7 +111,50 @@ public class Autos {
         return routine;
     }
 
-    /**
+
+
+    public enum RobotState {
+        // Todo: add all states as in button mapping doc
+        CORAL_INTAKING,
+        HANDOFF,
+        L1_PRE_SCORE,
+        L2_PRE_SCORE,
+        L3_PRE_SCORE,
+        L4_PRE_SCORE,
+        INTAKING_ALGAE_GROUND,
+        INTAKING_ALGAE_REEF,
+        ALGAE_STOW,
+        BARGE_PREP
+
+    }
+
+    public RobotState currentState = RobotState.HANDOFF;
+
+    // Functions below:
+    // Todo: add command that combines intakeCoral and stowCoral, update states
+
+    public Command stowCoral() {
+        return Commands.sequence(setState(RobotState.HANDOFF),
+                m_intakepiv.setAngle(intakeConstants.HANDOFF_ANGLE));
+    }
+
+    // Commands below:
+    // TODO: add handoff sequence
+
+    public Command prepL1() {
+        return Commands.sequence(setState(RobotState.L1_PRE_SCORE),
+        m_intakepiv.setAngle(intakeConstants.L1_ANGLE)
+
+        );
+    }
+
+    public Command setState(RobotState newState) {
+        return Commands.runOnce(() -> {
+            currentState = newState;
+            System.out.println("State changed to: " + newState);
+        });
+    }
+     /**
      * Creates a new Command using the Autopilot AutoAlign to navigate to the targetPose. 
      * 
      * @param targetPose The desired ending Pose2d
