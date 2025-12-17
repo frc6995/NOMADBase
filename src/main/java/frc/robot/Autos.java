@@ -59,19 +59,18 @@ import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.YAMSIntakePivot;
-import frc.robot.subsystems.YAMSIntakePivot.intakeConstants;
+import frc.robot.subsystems.IntakePivotS;
+import frc.robot.subsystems.IntakePivotS.intakeConstants;
 
 public class Autos {
     private final AutoFactory m_factory;
     private final RobotContainer m_container;
     protected final CommandSwerveDrivetrain m_drivebase;
-    protected final YAMSIntakePivot m_intakepiv;
-    private final StateMachine stateMachine = new StateMachine();
+    protected final IntakePivotS m_intakepiv;
     private final double SCORE_WAIT = 0.875;
 
-    public Autos(CommandSwerveDrivetrain drivebase, YAMSIntakePivot intakepiv,
-            AutoFactory factory, RobotContainer container, StateMachine stateMachine) {
+    public Autos(CommandSwerveDrivetrain drivebase, IntakePivotS intakepiv,
+            AutoFactory factory, RobotContainer container) {
         m_drivebase = drivebase; // need
         m_intakepiv = intakepiv;
         m_factory = factory;
@@ -81,20 +80,24 @@ public class Autos {
         container.m_chooser.addRoutine(backsideL1Name, this::backsideL1);
     }
 
-    //Example auto
+    // Example auto
     String simpleAutoName = "Simple Auto";
+
     public AutoRoutine simpleAuto() {
         final AutoRoutine routine = m_factory.newRoutine(simpleAutoName);
         final AutoTrajectory traj = routine.trajectory("1");
         routine.active().onTrue(
                 traj.resetOdometry()
                         .andThen(traj.cmd())
-                        .andThen(createAutoAlignCommand(new Pose2d(ChoreoVariables.getPose("Lolipop1").getX(), ChoreoVariables.getPose("Lolipop1").getY(), ChoreoVariables.getPose("Lolipop1").getRotation()))));
+                        .andThen(createAutoAlignCommand(new Pose2d(ChoreoVariables.getPose("Lolipop1").getX(),
+                                ChoreoVariables.getPose("Lolipop1").getY(),
+                                ChoreoVariables.getPose("Lolipop1").getRotation()))));
         return routine;
     }
 
-    //Example auto
+    // Example auto
     String backsideL1Name = "Backside L1";
+
     public AutoRoutine backsideL1() {
         final AutoRoutine routine = m_factory.newRoutine(backsideL1Name);
         var firstScore = routine.trajectory("BacksideL1(1)");
@@ -105,13 +108,11 @@ public class Autos {
                                 .andThen(waitSeconds(SCORE_WAIT))
                                 .andThen(postScoreIntake.cmd())));
 
-        firstScore.atTimeBeforeEnd(0.2).onTrue(stateMachine.prepL1());
+        firstScore.atTimeBeforeEnd(0.2).onTrue(prepL1());
         // firstScore.doneFor(0.1).onTrue(null/*stateMachine.scoreL1());
         // firstScore.atTimeBeforeEnd(0.1).onTrue(stateMachine.intakeCoral());
         return routine;
     }
-
-
 
     public enum RobotState {
         // Todo: add all states as in button mapping doc
@@ -135,7 +136,7 @@ public class Autos {
 
     public Command stowCoral() {
         return Commands.sequence(setState(RobotState.HANDOFF),
-                m_intakepiv.setAngle(intakeConstants.HANDOFF_ANGLE));
+                m_intakepiv.setAngle(intakeConstants.ALGAE_INTAKE));
     }
 
     // Commands below:
@@ -143,7 +144,7 @@ public class Autos {
 
     public Command prepL1() {
         return Commands.sequence(setState(RobotState.L1_PRE_SCORE),
-        m_intakepiv.setAngle(intakeConstants.L1_ANGLE)
+                m_intakepiv.setAngle(intakeConstants.STOW)
 
         );
     }
@@ -154,8 +155,10 @@ public class Autos {
             System.out.println("State changed to: " + newState);
         });
     }
-     /**
-     * Creates a new Command using the Autopilot AutoAlign to navigate to the targetPose. 
+
+    /**
+     * Creates a new Command using the Autopilot AutoAlign to navigate to the
+     * targetPose.
      * 
      * @param targetPose The desired ending Pose2d
      * @return The Command to navigate to the given Pose2d.
@@ -165,7 +168,8 @@ public class Autos {
     }
 
     /**
-     * Creates a new Command using the Autopilot AutoAlign to navigate to the targetPose. Takes a desired entry angle
+     * Creates a new Command using the Autopilot AutoAlign to navigate to the
+     * targetPose. Takes a desired entry angle
      * when approaching the targetPose.
      * 
      * @param targetPose The desired ending Pose2d

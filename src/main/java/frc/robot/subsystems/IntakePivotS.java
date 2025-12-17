@@ -22,6 +22,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -37,17 +38,24 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import frc.robot.StateMachine;
 import frc.robot.generated.TunerConstants;
 import yams.mechanisms.SmartMechanism;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
-public class YAMSIntakePivot extends SubsystemBase {
+public class IntakePivotS extends SubsystemBase {
   public class intakeConstants {
-    public static final Angle SOME_ANGLE = Degrees.of(20);
-    public static final Angle DOWN_ANGLE = Degrees.of(-35);
-    public static final Angle L1_ANGLE = Degrees.of(65);
-    public static final Angle HANDOFF_ANGLE = Degrees.of(135);
+    public static final Distance OFFSET_X = Inches.of(5.6);
+    public static final Distance OFFSET_Y = Inches.of(0);
+    public static final Distance OFFSET_Z = Inches.of(4);
+
+    public static final Angle CW_LIMIT = Degrees.of(-10);
+    public static final Angle CCW_LIMIT = Degrees.of(95);
+
+    public static final Angle ALGAE_INTAKE = Degrees.of(45);
+    public static final Angle STOW = Degrees.of(95);
+    public static final Angle L1_POST_SCORE = Degrees.of(80);
+    public static final Angle ALGAE_POST_SCORE = Degrees.of(70);
+
     public static final double KP = 18;
     public static final double KI = 0;
     public static final double KD = 0.2;
@@ -59,7 +67,8 @@ public class YAMSIntakePivot extends SubsystemBase {
     public static final double ACCELERATION = 688;
     public static final int MOTOR_ID = 40;
     public static final double STATOR_CURRENT_LIMIT = 120;
-    public static final double MOI = 0.1055457256;
+    public static final double MOI = 0.0855457256;
+    public static Angle L1_ANGLE;
   }
 
   private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
@@ -81,29 +90,30 @@ public class YAMSIntakePivot extends SubsystemBase {
       // Gearing from the motor rotor to final shaft.
       // In this example gearbox(3,4) is the same as gearbox("3:1","4:1") which
       // corresponds to the gearbox attached to your motor.
-      .withGearing(SmartMechanism.gearing(SmartMechanism.gearbox(12.5, 1)))
+      .withGearing(SmartMechanism.gearing(SmartMechanism.gearbox(24, 1)))
       .withMotorInverted(false)
       .withIdleMode(MotorMode.BRAKE)
       .withStatorCurrentLimit(Amps.of(intakeConstants.STATOR_CURRENT_LIMIT));
 
   // Vendor motor controller object
-  private TalonFX intakeMotor = new TalonFX(intakeConstants.MOTOR_ID, TunerConstants.kCANBus2);
+  private TalonFX intakePivotMotor = new TalonFX(intakeConstants.MOTOR_ID, TunerConstants.kCANBus2);
 
   // Create our SmartMotorController from our Spark and config with the NEO.
-  private SmartMotorController IntakeSMC = new TalonFXWrapper(intakeMotor, DCMotor.getFalcon500(1), smcConfig);
+  private SmartMotorController IntakeSMC = new TalonFXWrapper(intakePivotMotor, DCMotor.getKrakenX60(1), smcConfig);
 
   private final MechanismPositionConfig robotToMechanism = new MechanismPositionConfig()
-      .withRelativePosition(new Translation3d(Meters.of(0.1), Meters.of(0), Meters.of(0.15)));
+      .withRelativePosition(
+          new Translation3d(intakeConstants.OFFSET_X, intakeConstants.OFFSET_Y, intakeConstants.OFFSET_Z));
 
   private ArmConfig armCfg = new ArmConfig(IntakeSMC)
       // Soft limit is applied to the SmartMotorControllers PID
 
-      .withHardLimit(Degrees.of(-25), Degrees.of(141))
+      .withHardLimit(intakeConstants.CW_LIMIT, intakeConstants.CCW_LIMIT)
       // Starting position is where your arm starts
-      .withStartingPosition(Degrees.of(141))
+      .withStartingPosition(intakeConstants.STOW)
 
       // Length and mass of your arm for sim.
-      .withLength(Feet.of((14 / 12)))
+      .withLength(Feet.of((18 / 12)))
 
       .withMOI(intakeConstants.MOI)
 
@@ -146,9 +156,5 @@ public class YAMSIntakePivot extends SubsystemBase {
 
   public Angle getAngle() {
     return arm.getAngle();
-  }
-
-  public Command goToAngle() {
-    return run(() -> arm.setAngle(intakeConstants.SOME_ANGLE));
   }
 }

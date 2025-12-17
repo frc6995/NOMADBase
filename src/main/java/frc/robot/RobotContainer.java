@@ -35,8 +35,7 @@ import choreo.auto.AutoFactory;
 import frc.robot.Autos;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.YAMSIntakePivot;
-import frc.robot.StateMachine;
+import frc.robot.subsystems.IntakePivotS;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -58,13 +57,12 @@ public class RobotContainer {
 
     // public final IntakePivotS intakePivot = new IntakePivotS();
 
-    public final YAMSIntakePivot yIntakePivot = new YAMSIntakePivot();
+    public final IntakePivotS yIntakePivot = new IntakePivotS();
 
     private final AutoFactory autoFactory;
     private Mechanism2d VISUALIZER;
     private final Autos autoRoutines;
     public final AutoChooser m_chooser = new AutoChooser();
-    private final StateMachine stateMachine = new StateMachine();
 
     public RobotContainer() {
 
@@ -74,7 +72,7 @@ public class RobotContainer {
         SmartDashboard.putData("Visualzer", VISUALIZER);
 
         autoFactory = drivetrain.createAutoFactory();
-        autoRoutines = new Autos(drivetrain, yIntakePivot, autoFactory, this, stateMachine);
+        autoRoutines = new Autos(drivetrain, yIntakePivot, autoFactory, this);
         SmartDashboard.putData("Auto Mode", m_chooser);
         configureBindings();
 
