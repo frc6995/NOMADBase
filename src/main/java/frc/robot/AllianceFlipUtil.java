@@ -11,7 +11,8 @@ public class AllianceFlipUtil {
     public static double FIELD_LENGTH = Units.feetToMeters(57.0) + Units.inchesToMeters(6.875);
 
     public static boolean isRedAlliance() {
-        return DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
+        var alliance = DriverStation.getAlliance();
+        return alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red;
     }
 
     public static Translation2d flipTranslation(Translation2d t) {

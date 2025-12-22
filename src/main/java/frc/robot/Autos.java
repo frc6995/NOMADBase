@@ -82,6 +82,7 @@ public class Autos {
 
     // Example auto
     String simpleAutoName = "Simple Auto";
+    Pose2d stationIntake = createChoreoPose("StationIntake");
 
     public AutoRoutine simpleAuto() {
         final AutoRoutine routine = m_factory.newRoutine(simpleAutoName);
@@ -164,7 +165,7 @@ public class Autos {
      * @return The Command to navigate to the given Pose2d.
      */
     public Command createAutoAlignCommand(Pose2d targetPose) {
-        return new AutoAlign(new APTarget(targetPose), m_drivebase);
+        return new AutoAlign(new APTarget(AllianceFlipUtil.flipPose(targetPose)), m_drivebase);
     }
 
     /**
@@ -177,6 +178,24 @@ public class Autos {
      * @return The Command to navigate to the given Pose2d.
      */
     public Command createAutoAlignCommand(Pose2d targetPose, Rotation2d entryAngle) {
-        return new AutoAlign(new APTarget(targetPose).withEntryAngle(entryAngle), m_drivebase);
+        return new AutoAlign(new APTarget(AllianceFlipUtil.flipPose(targetPose))
+        .withEntryAngle(AllianceFlipUtil.flipRotation(entryAngle)), m_drivebase);
+}
+
+
+/**
+* Creates a Pose2d from choreo variables
+* 
+* @param poseName (from Choreo)
+* @return a new {@code Pose2d} with the specified pose's coordinates and
+*         rotation
+*/
+public static Pose2d createChoreoPose(String poseName) {
+Pose2d bluePose = new Pose2d(
+        ChoreoVariables.getPose(poseName).getX(),
+        ChoreoVariables.getPose(poseName).getY(),
+        ChoreoVariables.getPose(poseName).getRotation());
+
+return AllianceFlipUtil.flipPose(bluePose);
     }
 }
